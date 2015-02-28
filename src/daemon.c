@@ -28,10 +28,41 @@
 #include <syslog.h>
 #include <signal.h>
 #include <getopt.h>
+#include <string.h>
 
 static int running = 0;
 static int delay = 1;
 static int counter = 0;
+static char *conf_file_name = NULL;
+static char *app_name = NULL;
+static FILE *log_stream;
+
+/**
+ * \brief Read configuration from config file
+ */
+int read_conf_file(void)
+{
+	FILE *conf_file = NULL;
+	int ret = -1;
+
+	if (conf_file_name == NULL) return 0;
+
+	conf_file = fopen(conf_file_name, "r");
+
+	if(conf_file == NULL) return 0;
+
+	ret = fscanf(conf_file, "%d", &delay);
+
+	if(ret > 0) {
+		syslog(LOG_INFO, "Reloaded configuration file %s of %s",
+			conf_file_name,
+			app_name);
+	}
+
+	fclose(conf_file);
+
+	return ret;
+}
 
 /**
  * \brief Callback function for handling signals.
@@ -40,28 +71,57 @@ static int counter = 0;
 void vs_handle_signal(int sig)
 {
 	if(sig == SIGINT) {
+		fprintf(log_stream, "Debug: stopping daemon ...\n");
 		running = 0;
-
 		/* Reset signal handling to default behavior */
 		signal(SIGINT, SIG_DFL);
+	} else if(sig == SIGHUP) {
+		fprintf(log_stream, "Debug: reloading daemon config file ...\n");
+		read_conf_file();
 	}
+}
+
+/**
+ * \brief Print help for this application
+ */
+void print_help(void)
+{
+	printf("\n Usage: %s [OPTIONS]\n\n", app_name);
+	printf("  Options:\n");
+	printf("   -h --help              Print this help\n");
+	printf("   -c --confile filename  Read configuration from the file\n");
+	printf("   -l --logfile filename  Write logs to the file\n");
+	printf("\n");
 }
 
 int main(int argc, char *argv[])
 {
 	static struct option long_options[] = {
 		{"confile", required_argument, 0, 'c'},
+		{"logfile", required_argument, 0, 'l'},
+		{"help", no_argument, 0, 'h'},
 		{NULL, 0, 0, 0}
 	};
 	int value, option_index = 0;
+	char *log_file_name = NULL;
 
-	while( (value = getopt_long(argc, argv, "c:", long_options, &option_index)) != -1) {
+	app_name = argv[0];
+
+	while( (value = getopt_long(argc, argv, "c:l:h", long_options, &option_index)) != -1) {
 		switch(value) {
 			case 'c':
-				printf("option -c %s\n", optarg);
+				conf_file_name = strdup(optarg);
+				break;
+			case 'l':
+				log_file_name = strdup(optarg);
+				break;
+			case 'h':
+				print_help();
+				return EXIT_SUCCESS;
 				break;
 			case '?':
-				break;
+				print_help();
+				return EXIT_FAILURE;
 			default:
 				break;
 		}
@@ -70,16 +130,47 @@ int main(int argc, char *argv[])
 	running = 1;
 
 	openlog(argv[0], LOG_PID|LOG_CONS, LOG_USER);
-	signal(SIGINT, vs_handle_signal);
 
-	syslog(LOG_INFO, "Started %s", argv[0]);
+	signal(SIGINT, vs_handle_signal);
+	signal(SIGHUP, vs_handle_signal);
+
+	syslog(LOG_INFO, "Started %s", app_name);
+
+	if(log_file_name != NULL) {
+		log_stream = fopen(log_file_name, "a+");
+		if (log_stream == NULL)
+		{
+			log_stream = stdout;
+		}
+	} else {
+		log_stream = stdout;
+	}
+
+	/* Read configuration from config file */
+	read_conf_file();
+
+	/* Never ending loop of server */
 	while(running == 1) {
-		fprintf(stdout, "Debug: %d\n", counter++);
+		/* Debug print */
+		fprintf(log_stream, "Debug: %d\n", counter++);
+
+		/* TODO: dome something useful here */
+
+		/* Real server should use select() or poll() for waiting at
+		 * asynchronous event */
 		sleep(delay);
 	}
 
-	syslog(LOG_INFO, "Stoped %s", argv[0]);
+	if (log_stream != stdout)
+	{
+		fclose(log_stream);
+	}
+
+	syslog(LOG_INFO, "Stopped %s", app_name);
 	closelog();
+
+	if(conf_file_name != NULL) free(conf_file_name);
+	if(log_file_name != NULL) free(log_file_name);
 
 	return EXIT_SUCCESS;
 }
