@@ -1,0 +1,13 @@
+[Unit]
+Description=Example of simple daemon program
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/daemon \
+	--conf_file /etc/daemon/daemon.conf \
+	--log_file /var/log/daemon.log
+User=root
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multiuser.agent

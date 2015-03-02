@@ -1,0 +1,15 @@
+[Unit]
+Description=Example of forking daemon program
+
+[Service]
+Type=forking
+PIDFile=/var/run/daemon.pid
+ExecStart=/usr/bin/daemon \
+	--conf_file /etc/daemon/daemon.conf \
+	--log_file /var/log/daemon.log \
+	--pid_file /var/run/daemon.pid \
+	--daemon
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multiuser.agent
