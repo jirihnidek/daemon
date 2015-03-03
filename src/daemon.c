@@ -32,6 +32,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
 
 static int running = 0;
 static int delay = 1;
@@ -45,7 +46,7 @@ static FILE *log_stream;
 /**
  * \brief Read configuration from config file
  */
-int read_conf_file(void)
+int read_conf_file(int reload)
 {
 	FILE *conf_file = NULL;
 	int ret = -1;
@@ -54,14 +55,24 @@ int read_conf_file(void)
 
 	conf_file = fopen(conf_file_name, "r");
 
-	if(conf_file == NULL) return 0;
+	if(conf_file == NULL) {
+		syslog(LOG_ERR, "Can not open config file: %s, error: %s",
+				conf_file_name, strerror(errno));
+		return -1;
+	}
 
 	ret = fscanf(conf_file, "%d", &delay);
 
 	if(ret > 0) {
-		syslog(LOG_INFO, "Reloaded configuration file %s of %s",
-			conf_file_name,
-			app_name);
+		if(reload == 1) {
+			syslog(LOG_INFO, "Reloaded configuration file %s of %s",
+				conf_file_name,
+				app_name);
+		} else {
+			syslog(LOG_INFO, "Configuration of %s read from file %s",
+				app_name,
+				conf_file_name);
+		}
 	}
 
 	fclose(conf_file);
@@ -122,7 +133,7 @@ void handle_signal(int sig)
 		signal(SIGINT, SIG_DFL);
 	} else if(sig == SIGHUP) {
 		fprintf(log_stream, "Debug: reloading daemon config file ...\n");
-		read_conf_file();
+		read_conf_file(1);
 	} else if(sig == SIGCHLD) {
 		fprintf(log_stream, "Debug: received SIGCHLD signal\n");
 	}
@@ -238,7 +249,7 @@ int main(int argc, char *argv[])
 		{"pid_file", required_argument, 0, 'p'},
 		{NULL, 0, 0, 0}
 	};
-	int value, option_index = 0;
+	int value, option_index = 0, ret;
 	char *log_file_name = NULL;
 	int start_daemonized = 0;
 
@@ -292,6 +303,8 @@ int main(int argc, char *argv[])
 		log_stream = fopen(log_file_name, "a+");
 		if (log_stream == NULL)
 		{
+			syslog(LOG_ERR, "Can not open log file: %s, error: %s",
+				log_file_name, strerror(errno));
 			log_stream = stdout;
 		}
 	} else {
@@ -299,7 +312,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Read configuration from config file */
-	read_conf_file();
+	read_conf_file(0);
 
 	/* This global variable can be changed in function handling signal */
 	running = 1;
@@ -307,7 +320,18 @@ int main(int argc, char *argv[])
 	/* Never ending loop of server */
 	while(running == 1) {
 		/* Debug print */
-		fprintf(log_stream, "Debug: %d\n", counter++);
+		ret = fprintf(log_stream, "Debug: %d\n", counter++);
+		if(ret < 0) {
+			syslog(LOG_ERR, "Can not write to log stream: %s, error: %s",
+				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
+			break;
+		}
+		ret = fflush(log_stream);
+		if(ret != 0) {
+			syslog(LOG_ERR, "Can not fflush() log stream: %s, error: %s",
+				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
+			break;
+		}
 
 		/* TODO: dome something useful here */
 
