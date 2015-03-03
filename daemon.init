@@ -1,0 +1,121 @@
+#!/bin/sh
+#
+#       /etc/rc.d/init.d/daemon
+#
+#       Example of init script for UNIX daemon
+#
+# chkconfig:   2345 20 80
+# description: Example of UNIX daemon
+
+### BEGIN INIT INFO
+# Provides:       daemon
+# Required-Start: $rsyslog
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop:  0 1 6
+# Short-Description: start and stop example of daemon
+# Description: Example of UNIX daemon
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+prog="daemon"
+app="/usr/bin/$prog"
+lock_file="/var/lock/subsys/$prog"
+log_file="/var/log/$prog.log"
+conf_file="/etc/daemon/daemon.conf"
+proguser=root
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+start() {
+    [ -x $exec ] || exit 5
+
+    echo -n $"Starting $prog: "
+    daemon --user $proguser $app --conf_file $conf_file --log_file $log_file --daemon
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch $lock_file
+    echo
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -INT
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lock_file
+    return $RETVAL
+}
+
+configtest() {
+    $app --test_conf $conf_file
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && echo -n "Syntax OK"
+    echo
+    return $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    echo -n $"Reloading $prog: "
+    killproc $prog -HUP
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
+
+force_reload() {
+    restart
+}
+
+rh_status() {
+    status $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    configtest)
+        $1
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|configtest}"
+        exit 2
+esac
+
+exit $?
