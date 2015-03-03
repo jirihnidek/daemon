@@ -51,8 +51,9 @@ To build example of daemon you have to type following commands:
     cd daemon
     mkdir build
     cd build
-    cmake ../
+    cmake -DCMAKE_INSTALL_PREFIX=/usr ../
     make
+    sudo make install
 
 ## Usage
 
@@ -77,3 +78,26 @@ When you will run `./bin/daemon` with parameter `--daemon` or `-d`, then
 it will become real UNIX daemon. But this is not the way, how UNIX daemons
 are started nowdays. Some init scripts or service files are used for
 this purpose.
+
+When you use Linux distribution using systemd, then you can try to copy
+file `forking-daemon.service` or `simple-daemon.service` to directory:
+
+    /usr/lib/systemd/system
+
+and then start daemon using
+
+    systemctl start simple-daemon
+    systemctl status simple-daemon
+    systemctl reload simple-daemon
+    systemctl stop simple-daemon
+
+When you use RedHat 4/5/6 or CentOS, then you can try to use init script:
+
+    cp daemon.init /etc/rc.d/init.d/daemond
+
+Then it should be possible to control daemon using:
+
+    service daemon start
+    service daemon status
+    service daemon reload
+    service daemon stop
