@@ -10,3 +10,8 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif (CMAKE_COMPILER_IS_GNUCC)
 
 add_executable (daemon ${daemon_src})
+
+# The rule to install daemon binary
+install (TARGETS daemon
+	RUNTIME
+	DESTINATION bin)
