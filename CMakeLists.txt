@@ -34,6 +34,9 @@ add_subdirectory (src)
 # Directory with configuration files
 set (DAEMON_CONF_DIR "/etc/daemon")
 
+# Directory with systemd unit files
+set (SYSTEMD_UNIT_DIR "/usr/lib/systemd/system/")
+
 # Macro for installing configuration files
 function(install_conf src dest)
   if(NOT IS_ABSOLUTE "${src}")
@@ -62,3 +65,7 @@ endfunction(install_conf)
 
 # Install configuration file
 install_conf (./daemon.conf ${DAEMON_CONF_DIR})
+
+# Install systemd unit files 
+install_conf (./simple-daemon.service ${SYSTEMD_UNIT_DIR})
+install_conf (./forking-daemon.service ${SYSTEMD_UNIT_DIR})

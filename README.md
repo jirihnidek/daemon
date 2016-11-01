@@ -79,17 +79,16 @@ it will become real UNIX daemon. But this is not the way, how UNIX daemons
 are started nowdays. Some init scripts or service files are used for
 this purpose.
 
-When you use Linux distribution using systemd, then you can try to copy
-file `forking-daemon.service` or `simple-daemon.service` to directory:
-
-    /usr/lib/systemd/system
-
-and then start daemon using
+When you use Linux distribution using systemd, then you can try start daemon using
 
     systemctl start simple-daemon
     systemctl status simple-daemon
     systemctl reload simple-daemon
     systemctl stop simple-daemon
+
+> Note: The unit files `simple-daemon.service` and `forking-daemon.service` 
+are copied to the directory `/usr/lib/systemd/system` during installation using
+`make install` command.
 
 When you use RedHat 4/5/6 or CentOS, then you can try to use init script:
 
