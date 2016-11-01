@@ -3,7 +3,7 @@ Description=Example of simple daemon program
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/daemon \
+ExecStart=/usr/bin/daemon \
 	--conf_file /etc/daemon/daemon.conf \
 	--log_file /var/log/daemon.log
 User=root
