@@ -55,7 +55,7 @@ int read_conf_file(int reload)
 
 	conf_file = fopen(conf_file_name, "r");
 
-	if(conf_file == NULL) {
+	if (conf_file == NULL) {
 		syslog(LOG_ERR, "Can not open config file: %s, error: %s",
 				conf_file_name, strerror(errno));
 		return -1;
@@ -63,8 +63,8 @@ int read_conf_file(int reload)
 
 	ret = fscanf(conf_file, "%d", &delay);
 
-	if(ret > 0) {
-		if(reload == 1) {
+	if (ret > 0) {
+		if (reload == 1) {
 			syslog(LOG_INFO, "Reloaded configuration file %s of %s",
 				conf_file_name,
 				app_name);
@@ -90,7 +90,7 @@ int test_conf_file(char *_conf_file_name)
 
 	conf_file = fopen(_conf_file_name, "r");
 
-	if(conf_file == NULL) {
+	if (conf_file == NULL) {
 		fprintf(stderr, "Can't read config file %s\n",
 			_conf_file_name);
 		return EXIT_FAILURE;
@@ -98,14 +98,14 @@ int test_conf_file(char *_conf_file_name)
 
 	ret = fscanf(conf_file, "%d", &delay);
 
-	if(ret <= 0) {
+	if (ret <= 0) {
 		fprintf(stderr, "Wrong config file %s\n",
 			_conf_file_name);
 	}
 
 	fclose(conf_file);
 
-	if(ret > 0)
+	if (ret > 0)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;
@@ -117,24 +117,24 @@ int test_conf_file(char *_conf_file_name)
  */
 void handle_signal(int sig)
 {
-	if(sig == SIGINT) {
+	if (sig == SIGINT) {
 		fprintf(log_stream, "Debug: stopping daemon ...\n");
 		/* Unlock and close lockfile */
-		if(pid_fd != -1) {
+		if (pid_fd != -1) {
 			lockf(pid_fd, F_ULOCK, 0);
 			close(pid_fd);
 		}
 		/* Try to delete lockfile */
-		if(pid_file_name != NULL) {
+		if (pid_file_name != NULL) {
 			unlink(pid_file_name);
 		}
 		running = 0;
 		/* Reset signal handling to default behavior */
 		signal(SIGINT, SIG_DFL);
-	} else if(sig == SIGHUP) {
+	} else if (sig == SIGHUP) {
 		fprintf(log_stream, "Debug: reloading daemon config file ...\n");
 		read_conf_file(1);
-	} else if(sig == SIGCHLD) {
+	} else if (sig == SIGCHLD) {
 		fprintf(log_stream, "Debug: received SIGCHLD signal\n");
 	}
 }
@@ -151,17 +151,17 @@ static void daemonize()
 	pid = fork();
 
 	/* An error occurred */
-	if(pid < 0) {
+	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
 	/* Success: Let the parent terminate */
-	if(pid > 0) {
+	if (pid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
 	/* On success: The child process becomes session leader */
-	if(setsid() < 0) {
+	if (setsid() < 0) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -172,12 +172,12 @@ static void daemonize()
 	pid = fork();
 
 	/* An error occurred */
-	if(pid < 0) {
+	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
 	/* Success: Let the parent terminate */
-	if(pid > 0) {
+	if (pid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
@@ -189,8 +189,7 @@ static void daemonize()
 	chdir("/");
 
 	/* Close all open file descriptors */
-	for(fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--)
-	{
+	for (fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--) {
 		close(fd);
 	}
 
@@ -200,17 +199,15 @@ static void daemonize()
 	stderr = fopen("/dev/null", "w+");
 
 	/* Try to write PID of daemon to lockfile */
-	if(pid_file_name != NULL)
+	if (pid_file_name != NULL)
 	{
 		char str[256];
 		pid_fd = open(pid_file_name, O_RDWR|O_CREAT, 0640);
-		if(pid_fd < 0)
-		{
+		if (pid_fd < 0) {
 			/* Can't open lockfile */
 			exit(EXIT_FAILURE);
 		}
-		if(lockf(pid_fd, F_TLOCK, 0) < 0)
-		{
+		if (lockf(pid_fd, F_TLOCK, 0) < 0) {
 			/* Can't lock file */
 			exit(EXIT_FAILURE);
 		}
@@ -256,8 +253,8 @@ int main(int argc, char *argv[])
 	app_name = argv[0];
 
 	/* Try to process all command line arguments */
-	while( (value = getopt_long(argc, argv, "c:l:t:p:dh", long_options, &option_index)) != -1) {
-		switch(value) {
+	while ((value = getopt_long(argc, argv, "c:l:t:p:dh", long_options, &option_index)) != -1) {
+		switch (value) {
 			case 'c':
 				conf_file_name = strdup(optarg);
 				break;
@@ -284,7 +281,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* When daemonizing is requested at command line. */
-	if(start_daemonized == 1) {
+	if (start_daemonized == 1) {
 		/* It is also possible to use glibc function deamon()
 		 * at this point, but it is useful to customize your daemon. */
 		daemonize();
@@ -299,10 +296,9 @@ int main(int argc, char *argv[])
 	signal(SIGHUP, handle_signal);
 
 	/* Try to open log file to this daemon */
-	if(log_file_name != NULL) {
+	if (log_file_name != NULL) {
 		log_stream = fopen(log_file_name, "a+");
-		if (log_stream == NULL)
-		{
+		if (log_stream == NULL) {
 			syslog(LOG_ERR, "Can not open log file: %s, error: %s",
 				log_file_name, strerror(errno));
 			log_stream = stdout;
@@ -318,16 +314,16 @@ int main(int argc, char *argv[])
 	running = 1;
 
 	/* Never ending loop of server */
-	while(running == 1) {
+	while (running == 1) {
 		/* Debug print */
 		ret = fprintf(log_stream, "Debug: %d\n", counter++);
-		if(ret < 0) {
+		if (ret < 0) {
 			syslog(LOG_ERR, "Can not write to log stream: %s, error: %s",
 				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
 			break;
 		}
 		ret = fflush(log_stream);
-		if(ret != 0) {
+		if (ret != 0) {
 			syslog(LOG_ERR, "Can not fflush() log stream: %s, error: %s",
 				(log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
 			break;
@@ -342,8 +338,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Close log file, when it is used. */
-	if (log_stream != stdout)
-	{
+	if (log_stream != stdout) {
 		fclose(log_stream);
 	}
 
@@ -352,9 +347,9 @@ int main(int argc, char *argv[])
 	closelog();
 
 	/* Free allocated memory */
-	if(conf_file_name != NULL) free(conf_file_name);
-	if(log_file_name != NULL) free(log_file_name);
-	if(pid_file_name != NULL) free(pid_file_name);
+	if (conf_file_name != NULL) free(conf_file_name);
+	if (log_file_name != NULL) free(log_file_name);
+	if (pid_file_name != NULL) free(pid_file_name);
 
 	return EXIT_SUCCESS;
 }
