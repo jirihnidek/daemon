@@ -12,4 +12,4 @@ ExecStart=/usr/bin/daemon \
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
-WantedBy=multiuser.agent
+WantedBy=multi-user.target
