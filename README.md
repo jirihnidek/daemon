@@ -30,7 +30,7 @@ and write some super simple systemd service file called `simple-daemon.service`:
     ExecStart=/usr/bin/daemon
 
     [Install]
-    WantedBy=multiuser.agent
+    WantedBy=multi-user.target
 
 and then you can run it as UNIX daemon, but such daemon do not have some
 nice features like reloadin configure files, loging, etc. This repository
