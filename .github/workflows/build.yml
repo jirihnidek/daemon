@@ -1,4 +1,4 @@
-name: CMake
+name: Continuous Integration
 
 on:
   push:
@@ -33,4 +33,37 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-      
+
+  build-rpm:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:rawhide
+      options: --security-opt seccomp=unconfined
+    steps:
+      # Install git and other tools first to be able to use 'actions/checkout@v2' properly
+      - name: Install required packages
+        run: dnf install --nogpgcheck -y tito gcc gcc-c++ make cmake git-core
+
+      # Clone repository and set everything for building of RPMs
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create build directory
+        run: rm -rf ./rpm_build; mkdir ./rpm_build
+
+      - name: Build RPM package
+        run: tito build --test --rpm --verbose --debug -o ./rpm_build --no-cleanup
+
+      - name: Store source RPM as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Source RPM
+          path: ./rpm_build/*.rpm
+
+      - name: Store binary RPMs as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Binary RPMs
+          # TODO: replace x86_64 with result of 'uname -m'
+          path: ./rpm_build/x86_64/*.rpm
