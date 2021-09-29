@@ -37,6 +37,12 @@ set (DAEMON_CONF_DIR "/etc/daemon")
 # Directory with systemd unit files
 set (SYSTEMD_UNIT_DIR "/usr/lib/systemd/system/")
 
+# Default directory for log file
+set (DAEMON_LOG_DIR "/var/log/daemon")
+
+# Default directory for PID file
+set (DAEMON_PID_DIR "/run/daemon")
+
 # Macro for installing configuration files
 function(install_conf src dest)
   if(NOT IS_ABSOLUTE "${src}")
@@ -69,3 +75,9 @@ install_conf (./daemon.conf ${DAEMON_CONF_DIR})
 # Install systemd unit files 
 install_conf (./simple-daemon.service ${SYSTEMD_UNIT_DIR})
 install_conf (./forking-daemon.service ${SYSTEMD_UNIT_DIR})
+
+# Create empty directory for default log file
+install(DIRECTORY DESTINATION ${DAEMON_LOG_DIR})
+
+# Create empty directory for default PID file
+install(DIRECTORY DESTINATION ${DAEMON_PID_DIR})
