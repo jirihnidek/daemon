@@ -5,8 +5,8 @@ Description=Example of simple daemon program
 Type=simple
 ExecStart=/usr/bin/daemon \
 	--conf_file /etc/daemon/daemon.conf \
-	--log_file /var/log/daemon.log
-User=root
+	--log_file /var/log/daemon/daemon.log
+User=daemoner
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

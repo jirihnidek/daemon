@@ -1,3 +1,8 @@
+%global groupname daemoner
+%global username  daemoner
+%global homedir   /
+
+
 Name:           daemon
 Version:        0.1
 Release:        1%{?dist}
@@ -7,6 +12,8 @@ License:        GPL
 URL:            https://github.com/jirihnidek/daemon
 Source0:        %{name}-%{version}.tar.gz
 
+Requires(pre):  shadow-utils
+
 BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  cmake
@@ -14,6 +21,14 @@ BuildRequires:  cmake
 
 %description
 This package contains example of simple UNIX daemon
+
+
+%pre
+getent group %{groupname} >/dev/null || groupadd -r %{groupname}
+getent passwd %{username} >/dev/null || \
+    useradd -r -g %{groupname} -d %{homedir} -s /sbin/nologin \
+    -c "User used for running example of daemon" %{username}
+exit 0
 
 
 # Section for preparation of build
@@ -49,14 +64,23 @@ rm -rf $RPM_BUILD_ROOT
 
 
 # This is special section again. You have to list here all files
-# that are part of final RPM package.
+# that are part of final RPM package. You can specify owner of
+# files and permissions to files
 %files
 
+# Files and directories owned by root:root
 %attr(755,root,root) %{_bindir}/daemon
 %attr(755,root,root) %dir %{_sysconfdir}/daemon
-%attr(750,root,root) %{_sysconfdir}/daemon/daemon.conf
 %attr(644,root,root) %{_unitdir}/simple-daemon.service
 %attr(644,root,root) %{_unitdir}/forking-daemon.service
+
+# File owned by root, but group can read it
+%attr(640,root,%{groupname}) %{_sysconfdir}/daemon/daemon.conf
+
+# Files and directories owned by daemoner:daemoner user
+%attr(755,%{username},%{groupname}) %{_var}/log/daemon
+%attr(755,%{username},%{groupname}) %{_rundir}/daemon
+
 
 
 # This is section, where you should describe all important changes
