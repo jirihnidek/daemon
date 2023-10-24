@@ -17,6 +17,8 @@ Requires(pre):  shadow-utils
 BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  cmake
+BuildRequires:  systemd
+BuildRequires:  systemd-rpm-macros
 
 
 %description
