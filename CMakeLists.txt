@@ -1,5 +1,5 @@
 # Minimal version of CMake
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8...3.27)
 
 # Build type
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -11,7 +11,7 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 # Define project name
-project (Daemon)
+project (Daemon C)
 
 # The version number
 set (${PROJECT_NAME}_VERSION_MAJOR 0)
