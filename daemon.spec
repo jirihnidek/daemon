@@ -4,7 +4,7 @@
 
 
 Name:           daemon
-Version:        0.1
+Version:        0.2
 Release:        1%{?dist}
 Summary:        Example of daemon
 
@@ -46,7 +46,7 @@ exit 0
 %build
 
 # We have to use build type "Debug" to be able to create all variants of
-# rpm packages (debuginfo, debugsource). The normal rpm is stripped from
+# rpm packages (debuginfo, debug source). The normal rpm is stripped from
 # debug information. Following macro just run cmake and it generates Makefile
 %cmake -DCMAKE_BUILD_TYPE="Debug"
 
@@ -88,9 +88,21 @@ rm -rf $RPM_BUILD_ROOT
 # This is section, where you should describe all important changes
 # in RPM
 %changelog
+* Mon Jan 22 2024 Jiri Hnidek <jhnidek@redhat.com>
+- Add initial support for Packit
+- Updated version of daemon to 0.2
+
+* Tue Oct 24 2023 Jiri Hnidek <jhnidek@redhat.com>
+- Fix building of RPM on COPR
+
+* Wed Sep 29 2021 Jiri Hnidek <jhnidek@redhat.com>
+- Use non-root user for runnig daemon
+
+* Mon Sep 27 2021 Jiri Hnidek <jhnidek@redhat.com>
+- Use GitHub Actions for building RPM
 
 * Fri Aug 27 2021 Jiri Hnidek <jhnidek@redhat.com>
-- new package built with tito
+- RPM package built with tito
 
 * Fri Aug 27 2021 Jiri Hnidek <jhnidek@redhat.com>
 - Added first version of daemon.spec
