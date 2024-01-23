@@ -4,6 +4,8 @@ Description=Example of forking daemon program
 [Service]
 Type=forking
 PIDFile=/run/daemon/daemon.pid
+AmbientCapabilities=cap_chown cap_setpcap
+CapabilityBoundingSet=cap_chown cap_setpcap
 ExecStart=/usr/bin/daemon \
 	--conf_file /etc/daemon/daemon.conf \
 	--log_file /var/log/daemon/daemon.log \

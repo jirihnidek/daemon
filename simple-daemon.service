@@ -3,6 +3,8 @@ Description=Example of simple daemon program
 
 [Service]
 Type=simple
+AmbientCapabilities=cap_chown cap_setpcap
+CapabilityBoundingSet=cap_chown cap_setpcap
 ExecStart=/usr/bin/daemon \
 	--conf_file /etc/daemon/daemon.conf \
 	--log_file /var/log/daemon/daemon.log

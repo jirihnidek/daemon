@@ -84,7 +84,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,%{username},%{groupname}) %{_rundir}/daemon
 
 
-
 # This is section, where you should describe all important changes
 # in RPM
 %changelog

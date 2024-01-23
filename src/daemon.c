@@ -18,7 +18,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  *
- * Contributor(s): Jiri Hnidek <jiri.hnidek@tul.cz>.
+ * Contributor(s): Jiri Hnidek <jiri.hnidek@gmail.com>.
  *
  */
 
@@ -34,6 +34,11 @@
 #include <sys/types.h>
 #include <errno.h>
 
+#include <pwd.h>
+#include <grp.h>
+
+#include <cap-ng.h>
+
 static int running = 0;
 static int delay = 1;
 static int counter = 0;
@@ -42,6 +47,92 @@ static char *pid_file_name = NULL;
 static int pid_fd = -1;
 static char *app_name = NULL;
 static FILE *log_stream;
+
+
+int do_chown(const char *file_path, const char *user_name, const char *group_name)
+{
+	uid_t          uid;
+	gid_t          gid;
+	struct passwd *pwd;
+	struct group  *grp;
+
+	pwd = getpwnam(user_name);
+	if (pwd == NULL) {
+		syslog(LOG_ERR, "Failed to get uid");
+		return -1;
+	}
+	uid = pwd->pw_uid;
+
+	grp = getgrnam(group_name);
+	if (grp == NULL) {
+		syslog(LOG_ERR, "Failed to get gid");
+		return -2;
+	}
+	gid = grp->gr_gid;
+
+	if (chown(file_path, uid, gid) == -1) {
+		syslog(LOG_ERR, "chown failed");
+		return -3;
+	}
+
+	syslog(LOG_INFO, "Owner changed");
+
+	return 0;
+
+}
+
+/**
+ * \brief Keep only necessary capabilities
+ */
+int set_capabilities(void)
+{
+	if (capng_get_caps_process() == 0) {
+		syslog(LOG_INFO, "Process capability obtained");
+	} else {
+		syslog(LOG_INFO, "Unable to obtain process capability");
+	}
+
+	if (capng_have_capabilities(CAPNG_SELECT_CAPS) > CAPNG_NONE) {
+		syslog(LOG_INFO, "Process has some capability");
+	} else {
+		syslog(LOG_INFO, "Process does not have any capability");
+	}
+
+	if (capng_have_capability(CAPNG_EFFECTIVE, CAP_SETPCAP)) {
+		syslog(LOG_INFO, "The process has capability CAP_SETPCAP...");
+	} else {
+		syslog(LOG_INFO, "The process does not have capability CAP_SETPCAP...");
+	}
+
+	if (capng_have_capability(CAPNG_EFFECTIVE, CAP_CHOWN)) {
+		syslog(LOG_INFO, "The process has capability CAP_CHOWN...");
+	} else {
+		syslog(LOG_INFO, "The process does not have capability CAP_CHOWN...");
+	}
+
+	capng_clear(CAPNG_SELECT_BOTH);
+	/* We want to change only chown to be able to change owner of file */
+	capng_update(CAPNG_ADD, CAPNG_EFFECTIVE|CAPNG_PERMITTED, CAP_CHOWN);
+	capng_apply(CAPNG_SELECT_BOTH);
+
+	if (capng_get_caps_process() == 0) {
+		syslog(LOG_INFO, "Process capability obtained");
+	} else {
+		syslog(LOG_INFO, "Unable to obtain process capability");
+	}
+
+	if (capng_have_capability(CAPNG_EFFECTIVE, CAP_CHOWN)) {
+		syslog(LOG_INFO, "The process has capability CAP_CHOWN now");
+	} else {
+		syslog(LOG_ERR, "The process still does not have capability CAP_CHOWN");
+		return 2;
+	}
+
+	do_chown("/tmp/hello.txt", "root", "root");
+
+	return 0;
+}
+
 
 /**
  * \brief Read configuration from config file
@@ -287,9 +378,13 @@ int main(int argc, char *argv[])
 		daemonize();
 	}
 
+
 	/* Open system log and write message to it */
 	openlog(argv[0], LOG_PID|LOG_CONS, LOG_DAEMON);
 	syslog(LOG_INFO, "Started %s", app_name);
+
+	/* Enable all required capabilities */
+	set_capabilities();
 
 	/* Daemon will handle two signals */
 	signal(SIGINT, handle_signal);

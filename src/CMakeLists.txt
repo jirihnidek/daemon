@@ -11,6 +11,9 @@ endif (CMAKE_COMPILER_IS_GNUCC)
 
 add_executable (daemon ${daemon_src})
 
+add_dependencies (daemon ${LIBCAPNG_LIBRARIES})
+target_link_libraries (daemon ${LIBCAPNG_LIBRARIES})
+
 # The rule to install daemon binary
 install (TARGETS daemon
 	RUNTIME
