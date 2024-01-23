@@ -13,14 +13,6 @@ endif ()
 # Define project name
 project (Daemon C)
 
-# The version number
-set (${PROJECT_NAME}_VERSION_MAJOR 0)
-set (${PROJECT_NAME}_VERSION_MINOR 1)
-set (${PROJECT_NAME}_PATCH_LEVEL 0)
-
-set (${PROJECT_NAME}_VERSION
-	"${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
-
 # Set up directory with 3rd party cmake modules
 set (CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build_files/cmake/modules/")
