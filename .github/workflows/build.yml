@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Create build directory
       # Create build directory
@@ -41,7 +41,7 @@ jobs:
       image: fedora:rawhide
       options: --security-opt seccomp=unconfined
     steps:
-      # Install git and other tools first to be able to use 'actions/checkout@v2' properly
+      # Install git and other tools first to be able to use 'actions/checkout@v4' properly
       - name: Install required packages
         run: dnf install --nogpgcheck -y tito gcc make cmake git-core
 
@@ -62,13 +62,13 @@ jobs:
         run: tito build --test --rpm --verbose --debug -o ./rpm_build --no-cleanup
 
       - name: Store source RPM as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Source RPM
           path: ./rpm_build/*.rpm
 
       - name: Store binary RPMs as artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Binary RPMs
           # TODO: replace x86_64 with result of 'uname -m'
