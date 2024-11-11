@@ -42,6 +42,7 @@ To build example of the daemon you have to have following tools
 
 * CMake
 * GCC/CLang
+* libcap-ng-devel
 
 ## Build
 
