@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Create build directory
       # Create build directory
@@ -41,13 +41,13 @@ jobs:
       image: fedora:rawhide
       options: --security-opt seccomp=unconfined
     steps:
-      # Install git and other tools first to be able to use 'actions/checkout@v4' properly
+      # Install git and other tools first to be able to use 'actions/checkout@v5' properly
       - name: Install required packages
         run: dnf install --nogpgcheck -y tito gcc make cmake git-core
 
       # Clone repository and set everything for building of RPMs
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # This step is required so Tito can properly read git history
       # See https://github.com/actions/checkout/issues/766
