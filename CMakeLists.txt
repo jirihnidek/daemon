@@ -17,6 +17,11 @@ project (Daemon C)
 set (CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build_files/cmake/modules/")
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAPNG libcap-ng REQUIRED)
+
+include_directories(${LIBCAPNG_INCLUDE_DIR})
+
 # Set output directory for binaries
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin/)
 
